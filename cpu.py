@@ -118,6 +118,33 @@ class CPU:
                     elif commands[0] == "JNE":
                         program.append(0b01010110)
                         program.append(int(commands[1].strip('R')))
+                    elif commands[0] == "AND":
+                        program.append(0b10101000)
+                        program.append(int(commands[1].strip('R')))
+                        program.append(int(commands[2].strip('R')))
+                    elif commands[0] == "OR":
+                        program.append(0b10101010)
+                        program.append(int(commands[1].strip('R')))
+                        program.append(int(commands[2].strip('R')))
+                    elif commands[0] == "XOR":
+                        program.append(0b10101011)
+                        program.append(int(commands[1].strip('R')))
+                        program.append(int(commands[2].strip('R')))
+                    elif commands[0] == "NOT":
+                        program.append(0b01101001)
+                        program.append(int(commands[1].strip('R')))
+                    elif commands[0] == "SHL":
+                        program.append(0b10101100)
+                        program.append(int(commands[1].strip('R')))
+                        program.append(int(commands[2].strip('R')))
+                    elif commands[0] == "SHR":
+                        program.append(0b10101101)
+                        program.append(int(commands[1].strip('R')))
+                        program.append(int(commands[2].strip('R')))
+                    elif commands[0] == "MOD":
+                        program.append(0b10100100)
+                        program.append(int(commands[1].strip('R')))
+                        program.append(int(commands[2].strip('R')))
 
                     
         except FileNotFoundError:
@@ -152,6 +179,21 @@ class CPU:
                 self.fl += 2
             elif self.registers[reg_a] < self.registers[reg_b]:
                 self.fl += 4
+        elif op == "AND":
+            self.registers[reg_a] = self.registers[reg_a] & self.registers[reg_b]
+        elif op == "OR":
+            self.registers[reg_a] = self.registers[reg_a] | self.registers[reg_b]
+        elif op == "XOR":
+            self.registers[reg_a] = self.registers[reg_a] ^ self.registers[reg_b]
+        elif op == "NOT":
+            #8-bit not
+            self.registers[reg_a] = (1 << 8) - 1 - self.registers[reg_a]
+        elif op == "SHL":
+            self.registers[reg_a] = self.registers[reg_a] << self.registers[reg_b]
+        elif op == "SHR":
+            self.registers[reg_a] = self.registers[reg_a] >> self.registers[reg_b]
+        elif op == "MOD":
+            self.registers[reg_a] = self.registers[reg_a] % self.registers[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -230,3 +272,24 @@ class CPU:
                     self.pc = self.registers[operand_a]
                 else:
                     self.pc += 2
+            elif self.ir == 0b10101000: #AND
+                self.alu("AND", operand_a, operand_b)
+                self.pc += 3
+            elif self.ir == 0b10101010: #OR
+                self.alu("OR", operand_a, operand_b)
+                self.pc += 3
+            elif self.ir == 0b10101011: #XOR
+                self.alu("XOR", operand_a, operand_b)
+                self.pc += 3
+            elif self.ir == 0b01101001: #NOT
+                self.alu("NOT", operand_a, operand_b)
+                self.pc += 2
+            elif self.ir == 0b10101100: #SHL
+                self.alu("SHL", operand_a, operand_b)
+                self.pc += 3
+            elif self.ir == 0b10101101: #SHR
+                self.alu("SHR", operand_a, operand_b)
+                self.pc += 3
+            elif self.ir == 0b10100100: #MOD
+                self.alu("MOD", operand_a, operand_b)
+                self.pc += 3
