@@ -105,6 +105,9 @@ class CPU:
                         program.append(int(commands[1].strip('R')))
                     elif commands[0] == "RET":
                         program.append(0b00010001)
+                    elif commands[0] == "JMP":
+                        program.append(0b01010100)
+                        program.append(int(commands[1].strip('R')))
 
                     
         except FileNotFoundError:
@@ -129,6 +132,12 @@ class CPU:
         #elif op == "SUB": etc
         elif op == "MUL":
             self.registers[reg_a] *= self.registers[reg_b]
+        elif op == "CMP":
+            #Shift bits around to make the last one 0
+            self.fl = self.fl >> 1
+            self.fl = self.fl << 1
+            if self.registers[reg_a] == self.registers[reg_b]:
+                self.fl += 1
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -160,35 +169,37 @@ class CPU:
             self.ir = self.ram[self.pc]
             operand_a = self.ram[self.pc+1]
             operand_b = self.ram[self.pc+2]
-            if self.ir == 0b00000001:
+            if self.ir == 0b00000001: #HLT
                 break
-            elif self.ir == 0b10000010:
+            elif self.ir == 0b10000010: #LDI
                 if operand_b in self.subroutines:
                     self.registers[int(operand_a)] = self.subroutines[operand_b]
                 else:
                     self.registers[int(operand_a)] = operand_b
                 self.pc += 3
-            elif self.ir == 0b01000111:
+            elif self.ir == 0b01000111: #PRN
                 print(self.registers[operand_a])
                 self.pc += 2
-            elif self.ir == 0b10100010:
+            elif self.ir == 0b10100010: #MUL
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
-            elif self.ir == 0b01000101:
+            elif self.ir == 0b01000101: #PUSH
                 self.registers[7] -= 1
                 self.ram[self.registers[7]] = self.registers[operand_a]
                 self.pc += 2
-            elif self.ir == 0b01000110:
+            elif self.ir == 0b01000110: #POP
                 self.registers[operand_a] = self.ram[self.registers[7]]
                 self.registers[7] += 1
                 self.pc += 2
-            elif self.ir == 0b10100000:
+            elif self.ir == 0b10100000: #ADD
                 self.alu("ADD", operand_a, operand_b)
                 self.pc += 3
-            elif self.ir == 0b01010000:
+            elif self.ir == 0b01010000: #CALL
                 self.registers[7] -= 1
                 self.ram[self.registers[7]] = self.pc+2
                 self.pc = self.registers[operand_a]
-            elif self.ir == 0b00010001:
+            elif self.ir == 0b00010001: #RET
                 self.pc = self.ram[self.registers[7]]
                 self.registers[7] += 1
+            elif self.ir == 0b01010100: #JMP
+                self.pc = self.registers[operand_a]
