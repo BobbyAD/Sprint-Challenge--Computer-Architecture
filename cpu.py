@@ -108,6 +108,10 @@ class CPU:
                     elif commands[0] == "JMP":
                         program.append(0b01010100)
                         program.append(int(commands[1].strip('R')))
+                    elif commands[0] == "CMP":
+                        program.append(0b10100111)
+                        program.append(int(commands[1].strip('R')))
+                        program.append(int(commands[2].strip('R')))
 
                     
         except FileNotFoundError:
@@ -133,11 +137,15 @@ class CPU:
         elif op == "MUL":
             self.registers[reg_a] *= self.registers[reg_b]
         elif op == "CMP":
-            #Shift bits around to make the last one 0
-            self.fl = self.fl >> 1
-            self.fl = self.fl << 1
+            #Shift bits around to zero them out
+            self.fl = self.fl >> 3
+            self.fl = self.fl << 3
             if self.registers[reg_a] == self.registers[reg_b]:
                 self.fl += 1
+            elif self.registers[reg_a] > self.registers[reg_b]:
+                self.fl += 2
+            elif self.registers[reg_a] < self.registers[reg_b]:
+                self.fl += 4
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -203,3 +211,7 @@ class CPU:
                 self.registers[7] += 1
             elif self.ir == 0b01010100: #JMP
                 self.pc = self.registers[operand_a]
+            elif self.ir == 0b10100111: # CMP
+                self.alu("CMP", operand_a, operand_b)
+                self.pc += 3
+            
