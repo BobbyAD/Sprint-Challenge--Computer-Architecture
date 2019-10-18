@@ -112,6 +112,12 @@ class CPU:
                         program.append(0b10100111)
                         program.append(int(commands[1].strip('R')))
                         program.append(int(commands[2].strip('R')))
+                    elif commands[0] == "JEQ":
+                        program.append(0b01010101)
+                        program.append(int(commands[1].strip('R')))
+                    elif commands[0] == "JNE":
+                        program.append(0b01010110)
+                        program.append(int(commands[1].strip('R')))
 
                     
         except FileNotFoundError:
@@ -211,7 +217,16 @@ class CPU:
                 self.registers[7] += 1
             elif self.ir == 0b01010100: #JMP
                 self.pc = self.registers[operand_a]
-            elif self.ir == 0b10100111: # CMP
+            elif self.ir == 0b10100111: #CMP
                 self.alu("CMP", operand_a, operand_b)
                 self.pc += 3
-            
+            elif self.ir == 0b01010101: #JEQ
+                if self.fl - 1 == 0:
+                    self.pc = self.registers[operand_a]
+                else:
+                    self.pc += 2
+            elif self.ir == 0b01010110: #JNE
+                if self.fl - 1 != 0:
+                    self.pc = self.registers[operand_a]
+                else:
+                    self.pc += 2
